@@ -1,0 +1,59 @@
+# Precision-recall curve
+import sklearn
+import matplotlib.pyplot as plt
+print(sklearn.__version__)
+from sklearn.metrics import precision_recall_curve
+print(m)
+# y_test, X_test
+y_score = m.predict(X_test)
+print(y_score)
+print(y_test)
+precision, recall, thresholds = precision_recall_curve(y_test, y_score)
+plt.plot(precision,recall)
+plt.xlabel('precision')
+plt.ylabel('recall')
+plt.show()
+print(precision)
+print(recall)
+print(thresholds)
+
+
+# Micro average 
+from sklearn.metrics import precision_score 
+from sklearn.metrics.scorer import SCORERS
+print(sorted(list(SCORERS.keys())))
+y_score = m.predict(X_test)
+print(y_test)
+print(y_score)
+# This works with both y_test and y_score being categorical 
+score = precision_score(y_test, y_score, average='micro')
+
+
+# Model optimisation
+grid_values =  [0.01, 0.1, 1, 10]
+parameters = {'gamma':grid_values, 'C':grid_values}
+clf = GridSearchCV(m, parameters, scoring='recall')
+clf.fit(X_test, y_test)
+m_best = clf.best_estimator_
+from sklearn.metrics import precision_score
+y_score = m_best.predict(X_test)
+print('precision score:')
+print(precision_score(y_test, y_score))
+from sklearn.metrics import precision_recall_fscore_support
+print('recall score:')
+print(precision_recall_fscore_support(y_test, y_score))
+
+
+# Model optimisation
+grid_values =  [0.01, 0.1, 1, 10]
+parameters = {'gamma':grid_values, 'C':grid_values}
+clf = GridSearchCV(m, parameters, scoring='precision')
+clf.fit(X_test, y_test)
+m_best = clf.best_estimator_
+from sklearn.metrics import precision_score
+y_score = m_best.predict(X_test)
+print('precision score:')
+print(precision_score(y_test, y_score))
+from sklearn.metrics import precision_recall_fscore_support
+print('recall score:')
+print(precision_recall_fscore_support(y_test, y_score))
