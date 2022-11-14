@@ -1,0 +1,100 @@
+from numpy import sqrt 
+
+def solution(nums, prices):
+    
+    # Get population 
+    N = 0 
+    for element in nums: 
+        N+= element 
+        
+    # Get total cost 
+    sum = 0
+    for index in range(0,len(nums)):
+        sum += nums[index]*prices[index]
+    average = sum / N 
+    
+    # Squared residuals 
+    res = 0 
+    for index in range(0,len(prices)): 
+        res += (prices[index] - average)*(prices[index] - average)*nums[index]
+    
+    print('N = '+str(N))
+    print('res = '+str(res))
+    print('average = '+str(average))
+    
+    # Standard deviation 
+    std_dev = sqrt(res/N)
+    return std_dev
+
+
+def solution_2(startTimes, durations):
+    
+    # Store array with starting time + duration, convert starting time to minutes  
+    st_p_d = []
+    c_st = []
+    for index in range(0,len(startTimes)): 
+        min_st = 60*int(startTimes[index].split(':')[0])+int(startTimes[index].split(':')[1])
+        st_p_d.append(min_st + durations[index])
+        c_st.append(min_st)
+        
+    st_p_d.sort()
+    c_st.sort()
+    
+    movies_I_can_watch = 1
+    print('Converted start time')
+    print(c_st)
+
+    print('Converted start time + duration')
+    print(st_p_d)
+    
+    # Look at all start times
+    for index in range(0,len(c_st)-1):
+        I_can_watch = False # I can always watch the first movie 
+        start_time = c_st[index+1]
+        # Look at all start times + duration 
+        for index2 in range(0,len(st_p_d)): 
+            start_time_duration = st_p_d[index2]
+            print('Start time / duration + start time '+str(start_time)+' / '+str(start_time_duration))
+            
+            if  start_time >= start_time_duration:  
+                I_can_watch = True
+            else: 
+                continue 
+        if I_can_watch: 
+            movies_I_can_watch = movies_I_can_watch +1
+
+    print(movies_I_can_watch)
+
+
+from string import digits
+
+def solution_1(s): 
+    # Remove digits 
+    remove_digits = str.maketrans('', '', digits)
+    s_no_digits = s.translate(remove_digits)
+
+    # Convert string into a list and manipulate swapping roles of upper/lower case  
+    list_of_char = [*s_no_digits]
+    list_upper_case = []
+    list_lower_case = []
+    
+    # Define two lists, one with upper cases (necessary for reversing) and another with lower cases and empty elements
+    for char in list_of_char:
+        if char.isupper():
+            list_lower_case.append(char.lower())
+        if char.islower():
+            list_lower_case.append('') 
+            list_upper_case.append(char.upper())  
+
+    # Reverse the list 
+    list_upper_case = list_upper_case[::-1]
+    # Merge the two lists 
+    counter_replacements = 0
+    for index in range(0,len(list_lower_case)): 
+        if list_lower_case[index] == '':
+            list_lower_case[index]=list_upper_case[counter_replacements]
+            counter_replacements = counter_replacements+1
+
+    # Convert back into a string 
+    output = ''.join([str(element) for element in list_lower_case])
+    return output
