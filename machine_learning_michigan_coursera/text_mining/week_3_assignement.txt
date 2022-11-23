@@ -1,0 +1,308 @@
+# Function 4 has incorrect output Assignment 3
+In this assignment you will explore text message data and create models to predict if a message is spam or not.
+In [1]:
+
+import pandas as pd
+import numpy as np
+​
+spam_data = pd.read_csv('spam.csv')
+​
+spam_data['target'] = np.where(spam_data['target']=='spam',1,0)
+spam_data.head(10)
+Out[1]:
+text	target
+0	Go until jurong point, crazy.. Available only ...	0
+1	Ok lar... Joking wif u oni...	0
+2	Free entry in 2 a wkly comp to win FA Cup fina...	1
+3	U dun say so early hor... U c already then say...	0
+4	Nah I don't think he goes to usf, he lives aro...	0
+5	FreeMsg Hey there darling it's been 3 week's n...	1
+6	Even my brother is not like to speak with me. ...	0
+7	As per your request 'Melle Melle (Oru Minnamin...	0
+8	WINNER!! As a valued network customer you have...	1
+9	Had your mobile 11 months or more? U R entitle...	1
+In [2]:
+
+from sklearn.model_selection import train_test_split
+​
+​
+X_train, X_test, y_train, y_test = train_test_split(spam_data['text'], 
+                                                    spam_data['target'], 
+                                                    random_state=0)
+
+
+Question 1
+What percentage of the documents in spam_data are spam?
+This function should return a float, the percent value (i.e.  ratio∗100
+ ).
+
+-- I deleted this accidentally
+
+Question 2
+Fit the training data X_train using a Count Vectorizer with default parameters.
+What is the longest token in the vocabulary?
+This function should return a string.
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+def answer_two():
+    
+    vectorizer = CountVectorizer()
+    X = vectorizer.fit_transform(X_train)
+    tokens = vectorizer.get_feature_names()
+    longest_token = max(tokens, key=len)
+    return longest_token #Your answer here
+
+
+Question 3
+Fit and transform the training data X_train using a Count Vectorizer with default parameters.
+Next, fit a fit a multinomial Naive Bayes classifier model with smoothing alpha=0.1. Find the area under the curve (AUC) score using the transformed test data.
+This function should return the AUC score as a float.
+
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import roc_auc_score
+
+def answer_three():
+   
+    vectorizer = CountVectorizer()
+    X_vectorised = vectorizer.fit_transform(X_train)
+    cls = MultinomialNB(alpha=0.1)
+    cls.fit(X_vectorised, y_train)
+    X_test_vectorised = vectorizer.transform(X_test)
+    y_predict = cls.predict(X_test_vectorised)
+    
+    output = roc_auc_score(y_test, y_predict)
+    #print(output)
+    
+    return output #Your answer here
+
+
+Question 4
+Fit and transform the training data X_train using a Tfidf Vectorizer with default parameters.
+What 20 features have the smallest tf-idf and what 20 have the largest tf-idf?
+Put these features in a two series where each series is sorted by tf-idf value and then alphabetically by feature name. The index of the series should be the feature name, and the data should be the tf-idf.
+The series of 20 features with smallest tf-idfs should be sorted smallest tfidf first, the list of 20 features with largest tf-idfs should be sorted largest first.
+This function should return a tuple of two series (smallest tf-idfs series, largest tf-idfs series).
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
+
+def answer_four():
+    vectorizer = TfidfVectorizer()
+    X_vectorised = vectorizer.fit_transform(X_train)
+    features = vectorizer.get_feature_names()
+    sums = X_vectorised.sum(axis=0)
+    
+    data = []
+    for col, feature in enumerate(features):
+        data.append( (feature, sums[0,col] ) ) 
+  
+    small_tf_idfs = pd.DataFrame(data, columns=['term','rank'])
+    large_tf_idfs = pd.DataFrame(data, columns=['term','rank'])
+
+    small_tf_idfs.sort_values('rank', ascending=True, inplace=True)
+    large_tf_idfs.sort_values('rank', ascending=False, inplace=True)
+    
+    # This is only a matter of formatting the output 
+    small_tf_idfs.set_index('term')
+    large_tf_idfs.set_index('term')
+    small_output = small_tf_idfs['rank']
+    large_output = large_tf_idfs['rank']
+    
+    output =(pd.Series(small_output[:20]),pd.Series(large_output[:20]))
+    return output #Your answer here
+
+
+Question 5
+Fit and transform the training data X_train using a Tfidf Vectorizer ignoring terms that have a document frequency strictly lower than 3.
+Then fit a multinomial Naive Bayes classifier model with smoothing alpha=0.1 and compute the area under the curve (AUC) score using the transformed test data.
+This function should return the AUC score as a float.
+
+def answer_five(): 
+    vectorizer = TfidfVectorizer(min_df=3)
+    X_vectorised = vectorizer.fit_transform(X_train)
+    cls = MultinomialNB(alpha=0.1)
+    cls.fit(X_vectorised, y_train)
+    X_test_vectorised = vectorizer.transform(X_test)
+    y_predict = cls.predict(X_test_vectorised)
+    output = roc_auc_score(y_test, y_predict)
+    return output #Your answer here
+
+Question 6
+What is the average length of documents (number of characters) for not spam and spam documents?
+This function should return a tuple (average length not spam, average length spam).
+
+def answer_six():
+    
+    spam = spam_data[ spam_data['target']==1 ]
+    not_spam = spam_data[ spam_data['target']==0 ]
+
+    spam_average = spam['text'].str.len().sum() / (spam.shape)[0]
+    not_spam_average = not_spam['text'].str.len().sum() / (not_spam.shape)[0]
+
+    output = (not_spam_average,spam_average)
+    return output #Your answer here
+
+
+The following function has been provided to help you combine new features into the training data:
+
+
+def add_feature(X, feature_to_add):
+    """
+    Returns sparse feature matrix with added feature.
+    feature_to_add can also be a list of features.
+    """
+    from scipy.sparse import csr_matrix, hstack
+    return hstack([X, csr_matrix(feature_to_add).T], 'csr')
+
+
+Question 7
+Fit and transform the training data X_train using a Tfidf Vectorizer ignoring terms that have a document frequency strictly lower than 5.
+Using this document-term matrix and an additional feature, the length of document (number of characters), fit a Support Vector Classification model with regularization C=10000. Then compute the area under the curve (AUC) score using the transformed test data.
+This function should return the AUC score as a float.
+
+
+from sklearn.svm import SVC
+
+def answer_seven():
+    
+    cls = SVC(C=10000)
+    vectorizer = TfidfVectorizer(min_df=5)
+    X_vectorised = vectorizer.fit_transform(X_train)
+    X_vectorised_new = add_feature(X_vectorised, X_train[:].str.len())
+    
+    cls.fit(X_vectorised_new, y_train)
+    X_test_vectorised = vectorizer.transform(X_test)
+    X_test_vectorised_new = add_feature(X_test_vectorised, X_test[:].str.len())
+    y_predict = cls.predict(X_test_vectorised_new)
+    output = roc_auc_score(y_test, y_predict)
+    
+    return  output #Your answer here
+
+
+Question 8
+What is the average number of digits per document for not spam and spam documents?
+This function should return a tuple (average # digits not spam, average # digits spam).
+
+def answer_eight():
+    
+    spam = spam_data[ spam_data['target']==1 ]
+    not_spam = spam_data[ spam_data['target']==0 ]
+
+    spam_average = spam['text'].str.count('\d').sum() / (spam.shape)[0]
+    not_spam_average = not_spam['text'].str.count('\d').sum() / (not_spam.shape)[0]
+
+    output = (not_spam_average,spam_average)
+    
+    return output #Your answer here
+
+
+Question 9
+Fit and transform the training data X_train using a Tfidf Vectorizer ignoring terms that have a document frequency strictly lower than 5 and using word n-grams from n=1 to n=3 (unigrams, bigrams, and trigrams).
+Using this document-term matrix and the following additional features:
+the length of document (number of characters)
+number of digits per document
+fit a Logistic Regression model with regularization C=100. Then compute the area under the curve (AUC) score using the transformed test data.
+This function should return the AUC score as a float.
+
+
+from sklearn.linear_model import LogisticRegression
+
+def answer_nine():
+    
+    cls = LogisticRegression(C=100)
+    vectorizer = TfidfVectorizer(min_df=5,ngram_range=(1,3))
+    X_vectorised = vectorizer.fit_transform(X_train)
+    X_1_train = add_feature(X_vectorised, X_train[:].str.len())
+    X_train_final = add_feature(X_1_train, X_train[:].str.count('\d')) 
+    cls.fit(X_train_final, y_train)
+    
+    X_test_vectorised = vectorizer.transform(X_test)
+    X_1_test = add_feature(X_test_vectorised, X_test[:].str.len())
+    X_test_final = add_feature(X_1_test, X_test[:].str.count('\d')) 
+    y_predict = cls.predict(X_test_final)
+    output = roc_auc_score(y_test, y_predict)
+    
+    return output #Your answer here
+
+
+Question 10
+What is the average number of non-word characters (anything other than a letter, digit or underscore) per document for not spam and spam documents?
+Hint: Use \w and \W character classes
+This function should return a tuple (average # non-word characters not spam, average # non-word characters spam).
+
+
+import re
+
+def answer_ten():
+    
+    spam = spam_data[ spam_data['target']==1 ]
+    not_spam = spam_data[ spam_data['target']==0 ]
+    
+    average_spam_not_word = spam['text'].str.count('\w').sum()  / (spam.shape)[0]
+    average_not_spam_not_word = not_spam['text'].str.count('\w').sum()  / (not_spam.shape)[0]
+    
+    output = (average_not_spam_not_word  , average_spam_not_word)
+
+    return output #Your answer here
+
+
+Question 11
+Fit and transform the training data X_train using a Count Vectorizer ignoring terms that have a document frequency strictly lower than 5 and using character n-grams from n=2 to n=5.
+To tell Count Vectorizer to use character n-grams pass in analyzer='char_wb' which creates character n-grams only from text inside word boundaries. This should make the model more robust to spelling mistakes.
+Using this document-term matrix and the following additional features:
+the length of document (number of characters)
+number of digits per document
+number of non-word characters (anything other than a letter, digit or underscore.)
+fit a Logistic Regression model with regularization C=100. Then compute the area under the curve (AUC) score using the transformed test data.
+Also find the 10 smallest and 10 largest coefficients from the model and return them along with the AUC score in a tuple.
+The list of 10 smallest coefficients should be sorted smallest first, the list of 10 largest coefficients should be sorted largest first.
+The three features that were added to the document term matrix should have the following names should they appear in the list of coefficients: ['length_of_doc', 'digit_count', 'non_word_char_count']
+This function should return a tuple (AUC score as a float, smallest coefs list, largest coefs list).
+
+def answer_eleven():
+    
+    cls = LogisticRegression(C=100.)
+    
+    vectorizer = CountVectorizer(min_df=5,ngram_range=(2,5), analyzer='char_wb')
+    
+    X_vectorised = vectorizer.fit_transform(X_train)
+    X_1_train = add_feature(X_vectorised, X_train[:].str.len())
+    X_2_train = add_feature(X_1_train, X_train[:].str.count('\d')) 
+    X_train_final = add_feature(X_2_train, X_train[:].str.count('\w')) 
+    
+    X_test_vectorised = vectorizer.transform(X_test)
+    X_1_test = add_feature(X_test_vectorised, X_test[:].str.len())
+    X_2_test = add_feature(X_1_test, X_test[:].str.count('\d')) 
+    X_test_final = add_feature(X_2_test, X_test[:].str.count('\w')) 
+    
+    cls.fit(X_train_final, y_train)
+    y_predict = cls.predict(X_test_final)
+    roc = roc_auc_score(y_test, y_predict)
+    
+    
+    features = vectorizer.get_feature_names()
+    sums = X_train_final.sum(axis=0)
+    
+    data = []
+    for col, feature in enumerate(features):
+        data.append( (feature, sums[0,col] ) ) 
+    
+    small_score_features = pd.DataFrame(data, columns=['term','rank'])
+    large_score_features = pd.DataFrame(data, columns=['term','rank'])
+
+    small_score_features.sort_values('rank', ascending=True, inplace=True)
+    large_score_features.sort_values('rank', ascending=False, inplace=True)
+    
+    # This is only a matter of formatting the output 
+    small_score_features.set_index('term')
+    large_score_features.set_index('term')
+    small_output = small_score_features['rank']
+    large_output = large_score_features['rank']
+    
+    output =(roc,pd.Series(small_output[:10]),pd.Series(large_output[:10]))
+
+    return output #Your answer here
+
+
+
