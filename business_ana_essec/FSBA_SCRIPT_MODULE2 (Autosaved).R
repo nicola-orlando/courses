@@ -46,7 +46,7 @@ testdata = scale(testdata) # To keep our dataset safe, let's create a copy of it
 d = dist(testdata, method = "euclidean") # the dist() function computes the distances of all the observations in our dataset
 hcward = hclust(d, method="ward.D") # hclust() function performs hiearchical clustering, we pass it the distances, and we set the method argument to "ward.D"
 
-data$groups<-cutree(hcward,k=3) # assign our points to our k=3 clusters 
+data$groups<-cutree(hcward,k=3) # assign our points to our k=3 clusters, define a new variable  
 
 # The lattice library provides a complete set of functions for producing advanced plots.
 install.packages("lattice") #install the lattice package by using the install.packages() function
